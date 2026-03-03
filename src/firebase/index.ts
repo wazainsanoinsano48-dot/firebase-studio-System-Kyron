@@ -10,19 +10,40 @@ import { getDatabase, Database } from 'firebase/database';
 // This function should be called on the client side.
 // It ensures that Firebase is initialized only once.
 export function initializeFirebase(): {
-  firebaseApp: FirebaseApp;
-  auth: Auth;
-  firestore: Firestore;
-  database: Database;
+  firebaseApp: FirebaseApp | null;
+  auth: Auth | null;
+  firestore: Firestore | null;
+  database: Database | null;
 } {
-  const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  
-  return {
-    firebaseApp: app,
-    auth: getAuth(app),
-    firestore: getFirestore(app),
-    database: getDatabase(app)
-  };
+  try {
+    // Check if Firebase config is available
+    if (!firebaseConfig.apiKey) {
+      console.warn('[Firebase] Missing Firebase configuration. Please set environment variables.');
+      return {
+        firebaseApp: null,
+        auth: null,
+        firestore: null,
+        database: null
+      };
+    }
+
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    
+    return {
+      firebaseApp: app,
+      auth: getAuth(app),
+      firestore: getFirestore(app),
+      database: getDatabase(app)
+    };
+  } catch (error) {
+    console.error('[Firebase] Initialization error:', error);
+    return {
+      firebaseApp: null,
+      auth: null,
+      firestore: null,
+      database: null
+    };
+  }
 }
 
 // Export all hooks and utilities from their respective files
